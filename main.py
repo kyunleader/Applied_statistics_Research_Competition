@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from collections import Counter
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import font_manager
@@ -17,8 +18,6 @@ data = pd.read_excel('data.xlsx')
 import sweetviz as sv
 advert_report = sv.analyze(data)
 sv.analyze(data).show_html('./sweetviz_Advertising.html')'''
-
-
 
 # 남여 비교
 sns.set_style('whitegrid')
@@ -41,21 +40,17 @@ for i in range(1, 10):
     plt.subplot(3, 3, i)
     sns.distplot(data.iloc[:, i + 6])
 
-
-
 # k means 군집분석 해보기
-
 from sklearn.cluster import KMeans
 
-# 정규화 시키기
-from sklearn.preprocessing import StandardScaler
-data_consumption = pd.DataFrame(StandardScaler().fit_transform(data.iloc[:, 7:16]), columns=data.columns[7:16])
-data_consumption.info()  # 칼럼이름과 결측값, 데이터 형태 표시
+# 군집분석 데이터 준비
+data_consumption = data.iloc[:, 46:55]
 
 '''kmeans_model = KMeans(n_clusters=3, random_state=486)
 kmeans_model.fit(data_consumption)
 pred = kmeans_model.predict(data_consumption)
 list(pred).index(2)'''
+
 
 # elbow 포인트 구하기
 def elbow(x):
@@ -70,14 +65,30 @@ def elbow(x):
     plt.ylabel('sse')
     plt.show()
 
+
 elbow(data_consumption)  # 엘보우 포인트가 크게 보이지 않으나 보고서 내용과 일치시키기 위해 3개 설정
 
 # 클러스터의 중심점 보기
 kmeans_model = KMeans(n_clusters=3, random_state=486)
 kmeans_model.fit(data_consumption)
-cluster_center = pd.DataFrame(kmeans_model.cluster_centers_, columns=data.columns[7:16])
+pd.DataFrame(kmeans_model.cluster_centers_, columns=data.columns[7:16])
 
-from collections import Counter
+# 클러스터 별 주요 차이를 보이는 식비, 패션/쇼핑, 저축의 변수만을 가지고 다시 클러스터링
+data_main = data_consumption[['eatratio', 'fashion/shoppingratio', 'savingratio']]
 
-Counter(kmeans_model.predict(data_consumption))
-data_consumption['pred'] = kmeans_model.predict(data_consumption)
+elbow(data_main)  # elbow point 확인
+
+kmeans_model = KMeans(n_clusters=3, random_state=486)
+kmeans_model.fit(data_main)
+cluster_center = pd.DataFrame(kmeans_model.cluster_centers_, columns=data_main.columns)
+
+Counter(kmeans_model.predict(data_main))  # 집단의 편향성이 있는지 확인
+
+data_main['pred'] = kmeans_model.predict(data_main)
+
+# 데이터 3d plot 그려보기
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.scatter(data_main['eatratio'], data_main['fashion/shoppingratio'], data_main['savingratio'], c=data_main['pred'])
+# 어느정도 나뉘어 진 것을 확인
