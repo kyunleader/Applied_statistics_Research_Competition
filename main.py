@@ -92,3 +92,42 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 ax.scatter(data_main['eatratio'], data_main['fashion/shoppingratio'], data_main['savingratio'], c=data_main['pred'])
 # 어느정도 나뉘어 진 것을 확인
+
+# 한달 지출비가 2배가 되었을 때 클러스터 확인
+# 식비, 패션/쇼핑, 저축 변수를 활용하여 클러스터 분석
+
+data_main_x2 = data[['eatratio2', 'fashion/shoppingratio2', 'savingratio2']]
+
+kmeans_model = KMeans(n_clusters=3, random_state=486)
+kmeans_model.fit(data_main_x2)
+cluster_center = pd.DataFrame(kmeans_model.cluster_centers_, columns=data_main_x2.columns)
+
+Counter(kmeans_model.predict(data_main_x2))  # 집단의 편향성이 있는지 확인
+
+data_main_x2['pred_x2'] = kmeans_model.predict(data_main_x2)
+
+# 데이터 3d plot 그려보기
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.scatter(data_main_x2['eatratio2'], data_main_x2['fashion/shoppingratio2'],
+           data_main_x2['savingratio2'], c=data_main_x2['pred_x2'])
+
+
+
+
+# group by 나누어서 3d plot 표시 하기
+data_main_x2.columns = ['eatratio2', 'shoppingratio2', 'savingratio2', 'pred_x2']  # '/'이게 안되서 지움
+groups = data_main_x2.groupby('pred_x2')
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+for name, group in groups:
+    print(name, group)
+    ax.scatter(group.eatratio2, group.shoppingratio2,
+           group.savingratio2, label=name)
+ax.legend()
+ax.set_xlabel('식비')
+ax.set_ylabel('쇼핑')
+ax.set_zlabel('저축')
+
+
