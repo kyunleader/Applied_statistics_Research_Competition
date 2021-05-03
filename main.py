@@ -130,4 +130,42 @@ ax.set_xlabel('식비')
 ax.set_ylabel('쇼핑')
 ax.set_zlabel('저축')
 
+'''
+군집분석 결과로 봤을 때
+pred, pred_x2 변수에서 각각 0,1,2는 식비형, 저축형, 쇼핑형이라고 볼 수 있다.
+'''
+
+# 변수 바꾸기
+data_main['pred_x2'] = data_main_x2['pred_x2']
+data_main.loc[data_main['pred'] == 0, 'pred'] = '식비형'
+data_main.loc[data_main['pred'] == 1, 'pred'] = '저축형'
+data_main.loc[data_main['pred'] == 2, 'pred'] = '쇼핑형'
+
+data_main.loc[data_main['pred_x2'] == 0, 'pred_x2'] = '식비형'
+data_main.loc[data_main['pred_x2'] == 1, 'pred_x2'] = '저축형'
+data_main.loc[data_main['pred_x2'] == 2, 'pred_x2'] = '쇼핑형'
+
+
+# 식비형에 분포 되었던 사람이 한 달 지출이 2배가 되었을 때 어느 곳으로 이동하는지 시각화
+
+eat_ra = data_main[data_main['pred'] == '식비형'].groupby(['pred_x2'])['pred_x2'].count()
+plt.pie(eat_ra.values,
+        labels= eat_ra.index,
+        shadow= True,
+        autopct= '%1.2f%%')
+
+# 저축, 쇼핑형도 같은 방법으로 시각화
+
+save_ra = data_main[data_main['pred'] == '저축형'].groupby(['pred_x2'])['pred_x2'].count()
+plt.pie(save_ra.values,
+        labels= save_ra.index,
+        shadow= True,
+        autopct= '%1.2f%%')  # 저축형
+
+sh_ra = data_main[data_main['pred'] == '쇼핑형'].groupby(['pred_x2'])['pred_x2'].count()
+plt.pie(sh_ra.values,
+        labels= sh_ra.index,
+        shadow= True,
+        autopct= '%1.2f%%')
+
 
