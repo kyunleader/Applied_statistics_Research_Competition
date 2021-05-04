@@ -149,6 +149,7 @@ data_main.loc[data_main['pred_x2'] == 2, 'pred_x2'] = '쇼핑형'
 # 식비형에 분포 되었던 사람이 한 달 지출이 2배가 되었을 때 어느 곳으로 이동하는지 시각화
 
 eat_ra = data_main[data_main['pred'] == '식비형'].groupby(['pred_x2'])['pred_x2'].count()
+plt.figure()
 plt.pie(eat_ra.values,
         labels= eat_ra.index,
         shadow= True,
@@ -157,15 +158,34 @@ plt.pie(eat_ra.values,
 # 저축, 쇼핑형도 같은 방법으로 시각화
 
 save_ra = data_main[data_main['pred'] == '저축형'].groupby(['pred_x2'])['pred_x2'].count()
+explode = [0.05, 0.05, 0.05]
+plt.figure()
 plt.pie(save_ra.values,
         labels= save_ra.index,
         shadow= True,
-        autopct= '%1.2f%%')  # 저축형
+        autopct= '%1.2f%%',
+        explode=explode)  # 저축형
 
 sh_ra = data_main[data_main['pred'] == '쇼핑형'].groupby(['pred_x2'])['pred_x2'].count()
+wedgeprops={'width': 0.7, 'edgecolor': 'w', 'linewidth': 5}
+plt.figure()
 plt.pie(sh_ra.values,
         labels= sh_ra.index,
-        shadow= True,
-        autopct= '%1.2f%%')
+        autopct= '%1.2f%%',
+        wedgeprops=wedgeprops)
+
+# 한달 지출비가 2배가 되었을때 성별, 연애, 아르바이트 여부에 따라 차이가 있는지
+
+data['pred'] = data_main['pred']
+data['pred_x2'] = data_main['pred_x2']
+
+pd.crosstab(data.pred_x2, data.sex)  # 빈도표 만들기
+
+
+import scipy.stats as stats
+stats.chi2_contingency(observed=pd.crosstab(data.pred_x2, data.sex))
+# (1) 카이스퀘어 값, 검정 통계량 (2) p-value (3) 자유도 (4)각각의 기대빈도
+# 성별에 따라 지출 유형에 차이가 있다고 할 수 있다.
+
 
 
