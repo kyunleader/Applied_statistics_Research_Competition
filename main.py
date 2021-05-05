@@ -181,11 +181,39 @@ data['pred_x2'] = data_main['pred_x2']
 
 pd.crosstab(data.pred_x2, data.sex)  # 빈도표 만들기
 
-
 import scipy.stats as stats
 stats.chi2_contingency(observed=pd.crosstab(data.pred_x2, data.sex))
 # (1) 카이스퀘어 값, 검정 통계량 (2) p-value (3) 자유도 (4)각각의 기대빈도
 # 성별에 따라 지출 유형에 차이가 있다고 할 수 있다.
 
+stats.chi2_contingency(observed=pd.crosstab(data.pred_x2, data.couple))
+# 연애 여부에 따라 지출 유형에 차이가 있다고 할 수 없다.
+
+
+data.loc[data[9] == 1, 'alba'] = '아르바이트O'
+data.loc[data[9] == 2, 'alba'] = '아르바이트O'
+data.loc[data[9] == 3, 'alba'] = '아르바이트X'
+data.loc[data[9] == 4, 'alba'] = '아르바이트X'
+stats.chi2_contingency(observed=pd.crosstab(data.pred_x2, data.alba))
+# 아르바이트 여부에 따라 지출 유형에 차이가 있다고 할 수 있다.
+
+# 지출유형에 따라 소비의 만족도가 차이가 있는지 anova분석 시행
+import  scipy.stats
+from statsmodels.formula.api import ols
+from statsmodels.stats.anova import anova_lm
+data['sati'] = data[14]
+# 수준별 정규성 확인 샤피로테스트
+scipy.stats.shapiro(data.loc[data['pred'] == '저축형', 'sati'])
+scipy.stats.shapiro(data.loc[data['pred'] == '쇼핑형', 'sati'])
+scipy.stats.shapiro(data.loc[data['pred'] == '식비형', 'sati'])
+plt.figure()
+plt.hist(data.loc[data['pred'] == '저축형', 'sati'])
+
+# anova 모델 만들기
+model = ols('sati ~ pred', data).fit()
+anova_lm(model)
+
+plt.figure()
+sns.boxplot(x='pred', y='sati', data=data)
 
 
